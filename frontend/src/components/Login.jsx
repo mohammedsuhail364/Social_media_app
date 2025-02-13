@@ -2,6 +2,7 @@ import {  useState } from "react";
 import { TextField, Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useEffect } from "react";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -23,12 +24,12 @@ const Login = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const isAuthenticated = localStorage.getItem("token");
-  //   if (isAuthenticated) {
-  //     navigate('/feed');
-  //   }
-  // }, []); // Ensure navigate is only triggered when necessary
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem("token");
+    if (isAuthenticated) {
+      navigate('/feed');
+    }
+  }, []); // Ensure navigate is only triggered when necessary
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

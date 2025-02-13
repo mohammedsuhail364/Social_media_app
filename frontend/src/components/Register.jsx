@@ -19,7 +19,7 @@ const Signup = () => {
       await axios.post("http://localhost:5000/api/users/register", formData);
       alert("Signup successful! Please log in.");
       localStorage.setItem("token", "successfully sign in");
-      navigate("/feed");
+      navigate("/");
     } catch (error) {
       console.log(error);
 

@@ -11,8 +11,14 @@ import {
   Avatar,
   Box,
 } from "@mui/material";
-import { ThumbUp, Comment, Image as ImageIcon } from "@mui/icons-material";
+import {
+  ThumbUp,
+  Comment,
+  Image as ImageIcon,
+  Logout,
+} from "@mui/icons-material";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
@@ -22,6 +28,7 @@ const Feed = () => {
   const [newComment, setNewComment] = useState("");
   // const [likedPosts, setLikedPosts] = useState(new Set());
   const [hasLiked, setHasLiked] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPosts();
@@ -32,18 +39,20 @@ const Feed = () => {
       const response = await axios.get(
         `http://localhost:5000/api/posts?sortBy=${sortOption}`
       );
-      // Parse the comments from the returned data (it will be a stringified array)
-      const postsWithComments = response.data.map((post) => {
-        const comments = post.comments
-          ? JSON.parse(`[${post.comments}]`) // Parse the comment JSON string into an array
-          : [];
-        return { ...post, comments }; // Add the comments to the post object
-      });
+      console.log(response.data, "Response Data");
+      
+      // No need to parse comments; they are already a JSON array
+      const postsWithComments = response.data.map((post) => ({
+        ...post,
+        comments: post.comments || [],  // Ensure comments is an array
+      }));
+      
       setPosts(postsWithComments);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching posts:", error);
     }
   };
+  
 
   const handleNewPost = async () => {
     const formData = new FormData();
@@ -70,8 +79,8 @@ const Feed = () => {
         userId: 1,
       });
       // Toggle like state
-      
-      setHasLiked(!hasLiked)
+
+      setHasLiked(!hasLiked);
       fetchPosts();
     } catch (error) {
       console.error(error);
@@ -91,18 +100,28 @@ const Feed = () => {
       console.error(error);
     }
   };
-  // console.log(posts);
-  console.log(hasLiked,"has like");
-  
 
+  function handleLogout() {
+    const isConfirmed = window.confirm("Are you sure you want to log out?");
+
+    if (isConfirmed) {
+      localStorage.removeItem("token");
+      alert("You have successfully logged out.");
+      navigate("/");
+    }
+  }
+  console.log(posts);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       {/* Create Post Section */}
       <Card className="mb-6 shadow-lg rounded-lg">
         <CardContent>
-          <Typography variant="h6" className="font-bold mb-4 text-gray-800">
-            Create a Post
-          </Typography>
+          <div className="flex place-content-between cursor-pointer">
+            <Typography variant="h6" className="font-bold mb-4 text-gray-800">
+              Create a Post
+            </Typography>
+            <Logout onClick={handleLogout} />
+          </div>
           <TextField
             fullWidth
             variant="outlined"
@@ -113,7 +132,7 @@ const Feed = () => {
             rows={3}
             className="mb-4 bg-white rounded-lg"
           />
-          <div className="mb-4">
+          <div className="mb-4 mt-4">
             <Button
               variant="outlined"
               component="label"
@@ -197,7 +216,7 @@ const Feed = () => {
             <Box className="flex items-center justify-between mb-4">
               <IconButton
                 onClick={() => handleLike(post.id)}
-                color={hasLiked ? 'primary':'default'}
+                color={hasLiked ? "primary" : "default"}
                 className={`transition-colors ${
                   hasLiked ? "text-blue-500" : "text-gray-500"
                 }`}
@@ -211,11 +230,12 @@ const Feed = () => {
                 <Comment />
               </IconButton>
               <Typography className="text-gray-700">
-                {post.comment_count} Comments
+                {post.comments.length} Comments
               </Typography>
             </Box>
 
             {/* Comment Section */}
+
             <Box className="mb-4">
               <TextField
                 fullWidth
@@ -225,13 +245,15 @@ const Feed = () => {
                 onChange={(e) => setNewComment(e.target.value)}
                 className="bg-white rounded-lg"
               />
-              <Button
-                variant="contained"
-                onClick={() => handleNewComment(post.id)}
-                className="mt-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
-              >
-                Comment
-              </Button>
+              <div className="mt-4">
+                <Button
+                  variant="contained"
+                  onClick={() => handleNewComment(post.id)}
+                  className="mt-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
+                >
+                  Comment
+                </Button>
+              </div>
             </Box>
 
             {/* Display Comments */}
@@ -239,7 +261,7 @@ const Feed = () => {
               post.comments.map((comment, index) => (
                 <Box key={index} className="mt-2 bg-gray-100 p-3 rounded-lg">
                   <Typography variant="body2" className="text-gray-800">
-                    <strong>{comment.username}:</strong> {comment.comment}
+                    <strong>{comment.content}</strong> 
                   </Typography>
                 </Box>
               ))}
